@@ -21,16 +21,14 @@ class GA:
     crossover_rate: float
     elitism_count: int
 
-    debug: bool = False
-
-    def start(self) -> ChromosomeWithFitness:
+    def start(self, *, debug: bool = False) -> ChromosomeWithFitness:
         pop = self.init_pop()
         best: ChromosomeWithFitness = np.zeros(2), -inf
 
         for gen in range(self.generations):
             fitness_v = self.calc_fitness_v(pop)
             best = self.update_best(best, pop, fitness_v)
-            if self.debug:
+            if debug:
                 self.print_chromosome_with_fitness(str(gen), *best)
 
             elites = self.extract_elites(pop, fitness_v)

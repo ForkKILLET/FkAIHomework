@@ -1,3 +1,5 @@
+import os
+import sys
 from numpy.matlib import ma
 import numpy as np
 
@@ -48,11 +50,23 @@ class RasGA(GA):
 if __name__ == "__main__":
     ga = RasGA(
         pop_size=500,
-        generations=200,
-        mutation_rate=0.1,
+        generations=50,
+        mutation_rate=0.05,
         crossover_rate=0.7,
         elitism_count=5,
-        debug=True,
     )
-    best = ga.start()
-    ga.print_chromosome_with_fitness("Best", *best)
+
+    mode = os.getenv("MODE", "run")
+
+    match mode:
+        case "run":
+            best = ga.start()
+            ga.print_chromosome_with_fitness("Best", *best)
+        case "debug":
+            best = ga.start(debug=True)
+            ga.print_chromosome_with_fitness("Best", *best)
+        case "pass":
+            run_count = int(os.getenv("RUNS", "100"))
+            bests = [ga.start() for _ in range(run_count)]
+            passed_count = sum(1 for (x1, x2), _ in bests if x1 < 1e-6 and x2 < 1e-6)
+            print(f"Pass: {passed_count}/{run_count} = {passed_count/run_count:.2%}")
