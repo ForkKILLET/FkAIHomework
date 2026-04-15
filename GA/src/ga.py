@@ -1,17 +1,16 @@
+from dataclasses import dataclass
+from collections.abc import Callable, Iterable
 from abc import abstractmethod
 from math import inf
 
 import numpy as np
-from jaxtyping import Float
+import numpy.typing as npt
 
-from dataclasses import dataclass
-from typing import Callable, Iterable, TypeVar, Tuple
-
-type Chromosome = Float[np.ndarray, "2"]
-type Population = Float[np.ndarray, "N 2"]
-type Values = Float[np.ndarray, "N"]
+type Chromosome = npt.NDArray[np.float64]
+type Population = npt.NDArray[np.float64]
+type Values = npt.NDArray[np.float64]
 type FitnessFnV = Callable[[Population], Values]
-type ChromosomeWithFitness = Tuple[Chromosome, float]
+type ChromosomeWithFitness = tuple[Chromosome, float]
 
 @dataclass
 class GA:
@@ -21,8 +20,8 @@ class GA:
     crossover_rate: float
     elitism_count: int
 
-    def start(self, *, debug: bool = False) -> ChromosomeWithFitness:
-        pop = self.init_pop()
+    def start(self, *, debug: bool = False, on_generation: Callable[[int, ChromosomeWithFitness], None] | None = None) -> ChromosomeWithFitness:
+        pop = self.sample(self.pop_size)
         best: ChromosomeWithFitness = np.zeros(2), -inf
 
         for gen in range(self.generations):
@@ -30,11 +29,15 @@ class GA:
             best = self.update_best(best, pop, fitness_v)
             if debug:
                 self.print_chromosome_with_fitness(str(gen), *best)
+            if on_generation:
+                on_generation(gen, best)
 
             elites = self.extract_elites(pop, fitness_v)
+            
             pop = self.select(pop, fitness_v)
             pop = self.crossover(pop)
             pop = self.mutate(pop)
+
             pop = self.inject_elites(pop, elites)
 
         return best
@@ -48,7 +51,7 @@ class GA:
         pass
 
     @abstractmethod
-    def init_pop(self) -> Population:
+    def sample(self, size: int) -> Population:
         pass
 
     @abstractmethod
