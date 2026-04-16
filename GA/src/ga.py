@@ -6,11 +6,11 @@ from math import inf
 import numpy as np
 import numpy.typing as npt
 
-type Chromosome = npt.NDArray[np.float64]
+type Chromo = npt.NDArray[np.float64]
 type Population = npt.NDArray[np.float64]
 type Values = npt.NDArray[np.float64]
 type FitnessFnV = Callable[[Population], Values]
-type ChromosomeWithFitness = tuple[Chromosome, float]
+type ChromoWithFitness = tuple[Chromo, float]
 
 @dataclass
 class GA:
@@ -20,15 +20,15 @@ class GA:
     crossover_rate: float
     elitism_count: int
 
-    def start(self, *, debug: bool = False, on_generation: Callable[[int, ChromosomeWithFitness], None] | None = None) -> ChromosomeWithFitness:
+    def start(self, *, debug: bool = False, on_generation: Callable[[int, ChromoWithFitness], None] | None = None) -> ChromoWithFitness:
         pop = self.sample(self.pop_size)
-        best: ChromosomeWithFitness = np.zeros(2), -inf
+        best: ChromoWithFitness = np.zeros(2), -inf
 
         for gen in range(self.generations):
             fitness_v = self.calc_fitness_v(pop)
             best = self.update_best(best, pop, fitness_v)
             if debug:
-                self.print_chromosome_with_fitness(str(gen), *best)
+                self.print_chromo_with_fitness(str(gen), *best)
             if on_generation:
                 on_generation(gen, best)
 
@@ -42,31 +42,31 @@ class GA:
 
         return best
 
-    def print_chromosome_with_fitness(self, prefix: str, chromo: Chromosome, fitness: float):
+    def print_chromo_with_fitness(self, prefix: str, chromo: Chromo, fitness: float):
         x1, x2 = chromo
         print(f"{prefix:>6}: fitness = {fitness:<8.4f}, x = ({x1:.4f}, {x2:.4f})")
 
     @abstractmethod
     def calc_fitness_v(self, pop: Population) -> Values:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def sample(self, size: int) -> Population:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def select(self, pop: Population, fitness_v: Values) -> Population:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def crossover(self, pop: Population) -> Population:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def mutate(self, pop: Population) -> Population:
-        pass
+        raise NotImplementedError()
 
-    def update_best(self, prev_best: ChromosomeWithFitness, pop: Population, fitness_v: Values) -> ChromosomeWithFitness:
+    def update_best(self, prev_best: ChromoWithFitness, pop: Population, fitness_v: Values) -> ChromoWithFitness:
         best_idx = np.argmax(fitness_v)
         best_fitness = fitness_v[best_idx]
         best_value = pop[best_idx]

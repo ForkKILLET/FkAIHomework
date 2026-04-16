@@ -1,69 +1,25 @@
-from dataclasses import dataclass
 import argparse
-import numpy as np
-from utils import unzip2, partition
 
-from ga import GA, Chromosome, ChromosomeWithFitness, Population, Values
+from tqdm import tqdm
 
-eps = 1e-2
-x_min, x_max = -5.12, 5.12
+from rasga import RasGA, ChromoWithFitness
+from utils import unzip2, partition, float_range
 
-def ras_v(pop: Population) -> Values:
-    return 20 + np.sum(pop**2 - 10 * np.cos(2 * np.pi * pop), axis=1)
+type Point = tuple[float, float]
 
-@dataclass
-class RasGA(GA):
-    tournament_size: int
-    mutate_noise_std: float
+def get_is_passed(eps: float):
+    def is_passed(x: Point) -> bool:
+        x1, x2 = x
+        return abs(x1) < eps and abs(x2) < eps
+    return is_passed
 
-    def calc_fitness_v(self, pop: Population) -> Values:
-        return - ras_v(pop)
-
-    def sample(self, size: int) -> Population:
-        return np.random.uniform(x_min, x_max, (size, 2))
-
-    def select(self, pop: Population, fitness_v: Values) -> Population:
-        candidates = np.random.randint(0, self.pop_size, size=(self.pop_size, self.tournament_size))
-        best_idx = np.argmax(fitness_v[candidates], axis=1)
-
-        selected_idx = candidates[np.arange(self.pop_size), best_idx]
-        new_pop = pop[selected_idx]
-        return new_pop
-
-    def crossover(self, pop: Population) -> Population:
-        idx = np.random.permutation(self.pop_size)
-        parents1 = pop
-        parents2 = pop[idx]
-
-        alpha = np.random.rand(self.pop_size, 1)
-        offspring = alpha * parents1 + (1 - alpha) * parents2
-        offspring = np.clip(offspring, x_min, x_max)
-
-        new_pop = pop.copy()
-        mask = np.random.rand(self.pop_size) < self.crossover_rate
-        new_pop[mask] = offspring[mask]
-        return new_pop
-
-    def mutate(self, pop: Population) -> Population:
-        noise = np.random.normal(0, self.mutate_noise_std, pop.shape)
-        mask = np.random.rand(*pop.shape) < self.mutation_rate
-        mutated_pop = pop + mask * noise
-        mutated_pop = np.clip(mutated_pop, x_min, x_max)
-        return mutated_pop
+def extract_point(chromo_with_fitness: ChromoWithFitness) -> Point:
+    x, _ = chromo_with_fitness
+    return tuple(x)
 
 if __name__ == "__main__":
-    ga = RasGA(
-        pop_size=500,
-        generations=50,
-        mutation_rate=0.1,
-        crossover_rate=0.9,
-        elitism_count=3,
-        tournament_size=3,
-        mutate_noise_std=0.1,
-    )
-
     parser = argparse.ArgumentParser(description="Rastrigin GA experiment")
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers(dest="command", help="Sub commands")
 
     parser_run = subparsers.add_parser("run", help="Run the GA and print the best solution")
     parser_run.add_argument("--debug", action="store_true", help="Print debug information for each generation")
@@ -72,57 +28,118 @@ if __name__ == "__main__":
     parser_pass = subparsers.add_parser("pass", help="Run multiple times and report pass rate")
     parser_pass.add_argument("--runs", type=int, default=100, help="Number of runs to perform")
     parser_pass.add_argument("--plot", action="store_true", help="Plot the distribution of best solutions")
+    parser_pass.add_argument("--eps", type=float, default=1e-3, help="Epsilon threshold for passing" )
+
+    parser_search = subparsers.add_parser("search", help="Search for good parameters")
+    searchable_params = ["mutation_rate", "crossover_rate", "sbx_eta", "mutate_noise_std"]
+    parser_search.add_argument("--param", choices=searchable_params, required=True, help="Parameter to search")
+    parser_search.add_argument("--min", type=float, required=True, help="Minimum value of the parameter")
+    parser_search.add_argument("--max", type=float, required=True, help="Maximum value of the parameter")
+    parser_search.add_argument("--step", type=float, required=True, help="Step size for the parameter")
+    parser_search.add_argument("--runs", type=int, default=100, help="Number of runs to perform for each search")
+    parser_search.add_argument("--eps", type=float, default=1e-3, help="Epsilon threshold for passing" )
+    parser_search.add_argument("--plot", action="store_true", help="Plot the search results")
 
     args = parser.parse_args()
 
-    match args.command:
-        case "run":
-            progress = []
-            def on_generation(gen, best):
-                _, fitness = best
-                progress.append((gen, fitness))
+    try:
+        match args.command:
+            case "run":
+                ga = RasGA.default()
 
-            best = ga.start(debug=args.debug, on_generation=on_generation)
-            ga.print_chromosome_with_fitness("Best", *best)
+                progress = []
+                def on_generation(gen, best):
+                    _, fitness = best
+                    progress.append((gen, fitness))
 
-            if args.plot:
-                from plt import plt
+                best = ga.start(debug=args.debug, on_generation=on_generation)
+                ga.print_chromo_with_fitness("Best", *best)
 
-                gens, fitnesses = zip(*progress)
+                if args.plot:
+                    from plt import plt
 
-                plt.plot(gens, fitnesses, label="Fitness")
-                plt.xlabel("Generation")
-                plt.ylabel("Fitness")
-                plt.title("Fitness Progress")
-                plt.legend()
-                plt.grid()
-                plt.show()
+                    gens, fitnesses = zip(*progress)
 
-        case "pass":
-            type Point = tuple[float, float]
+                    plt.plot(gens, fitnesses, label="Fitness")
+                    plt.xlabel("Generation")
+                    plt.ylabel("Fitness")
+                    plt.title("Fitness Progress")
+                    plt.legend()
+                    plt.grid()
+                    plt.show()
 
-            def is_passed(x: Point) -> bool:
-                x1, x2 = x
-                return abs(x1) < eps and abs(x2) < eps
+            case "pass":
+                ga = RasGA.default()
 
-            def extract_point(chromo_with_fitness: ChromosomeWithFitness) -> Point:
-                x, _ = chromo_with_fitness
-                return tuple(x)
+                runs: int = args.runs
+                eps: float = args.eps
+                is_passed = get_is_passed(eps)
 
-            total_count: int = args.runs
-            xs = (extract_point(ga.start()) for _ in range(total_count))
-            not_passed_xs, passed_xs = (list(xs) for xs in partition(is_passed, xs))
-            passed_count = len(passed_xs)
-            print(f"Pass: {passed_count}/{total_count} = {passed_count/total_count:.2%}")
+                xs = (extract_point(ga.start()) for _ in tqdm(range(runs), desc=f"  Runs", leave=False, unit="run"))
+                not_passed_xs, passed_xs = (list(xs) for xs in partition(is_passed, xs))
+                passed_runs = len(passed_xs)
+                print(f"Pass: {passed_runs}/{runs} = {passed_runs / runs:.2%}")
 
-            if args.plot:
-                from plt import plt
+                if args.plot:
+                    from plt import plt
 
-                plt.scatter(*unzip2(passed_xs), alpha=0.5, color="blue")
-                plt.scatter(*unzip2(not_passed_xs), alpha=0.5, color="red")
+                    plt.scatter(*unzip2(passed_xs), alpha=0.5, color="blue")
+                    plt.scatter(*unzip2(not_passed_xs), alpha=0.5, color="red")
 
-                plt.xlabel("x1")
-                plt.ylabel("x2")
-                plt.title("Distribution of Best Solutions")
-                plt.grid()
-                plt.show()
+                    plt.xlabel("x1")
+                    plt.ylabel("x2")
+                    plt.title("Distribution of Best Solutions")
+                    plt.grid()
+                    plt.show()
+
+            case "search":
+                runs: int = args.runs
+                eps: float = args.eps
+                is_passed = get_is_passed(eps)
+
+                values: list[float] = []
+                accs: list[float] = []
+
+                best_value: float = 0.0
+                best_acc: float = 0.0
+
+                ga = RasGA.default()
+
+                if args.plot:
+                    from plt import plt
+
+                    plt.ion()
+                    fig, ax = plt.subplots()
+                    line, = ax.plot([], [], marker="o")
+                    plt.xlabel(args.param)
+                    plt.ylabel("Pass Rate")
+                    plt.title(f"Search for {args.param}")
+
+                for value in tqdm(float_range(args.min, args.max, args.step), desc=f"Searching {args.param}", unit="value"):
+                    setattr(ga, args.param, value)
+                    
+                    xs = (extract_point(ga.start()) for _ in tqdm(range(runs), desc=f"\\ Runs at {value:.4f}", leave=False, unit="run"))
+                    passed_runs = sum(is_passed(x) for x in xs)
+                    acc = passed_runs / runs
+
+                    values.append(value)
+                    accs.append(acc)
+
+                    if acc > best_acc:
+                        best_value = value
+                        best_acc = acc
+
+                    if args.plot:
+                        line.set_data(values, accs)
+                        ax.relim()
+                        ax.autoscale_view()
+                        fig.canvas.draw_idle()
+                        fig.canvas.flush_events()
+
+                print(f"Best {args.param}: {best_value} with pass rate {best_acc:.2%}")
+                if args.plot:
+                    plt.ioff()
+                    plt.show()
+
+    except KeyboardInterrupt:
+        print("Interrupted by user, exiting...")
