@@ -1,0 +1,70 @@
+Input                 : ∀x (P(x) → (∃y Q(x, y)))
+Eliminate → and ↔     : ∀x (¬P(x) ∨ (∃y Q(x, y)))
+To Negation NF        : ∀x (¬P(x) ∨ (∃y Q(x, y)))
+Std bound vars        : ∀x (¬P(x) ∨ (∃y Q(x, y)))
+Skolemize             : ∀x (¬P(x) ∨ Q(x, ƒy(x)))
+Drop ∀                : ¬P(x) ∨ Q(x, ƒy(x))
+To Conjunctive NF     : ¬P(x) ∨ Q(x, ƒy(x))
+Create clause set     : { ¬P(x) ∨ Q(x, ƒy(x)) }
+Std clause vars       : { ¬P(x) ∨ Q(x, ƒy(x)) }
+
+Input                 : ∃x ∀y (R(x, y) → ¬S(y))
+Eliminate → and ↔     : ∃x ∀y (¬R(x, y) ∨ ¬S(y))
+To Negation NF        : ∃x ∀y (¬R(x, y) ∨ ¬S(y))
+Std bound vars        : ∃x ∀y (¬R(x, y) ∨ ¬S(y))
+Skolemize             : ∀y (¬R(ƒx(), y) ∨ ¬S(y))
+Drop ∀                : ¬R(ƒx(), y) ∨ ¬S(y)
+To Conjunctive NF     : ¬R(ƒx(), y) ∨ ¬S(y)
+Create clause set     : { ¬R(ƒx(), y) ∨ ¬S(y) }
+Std clause vars       : { ¬R(ƒx(), x) ∨ ¬S(x) }
+
+Input                 : ∀x (P(x) ∧ (∃y (Q(y) → R(x, y))))
+Eliminate → and ↔     : ∀x (P(x) ∧ (∃y (¬Q(y) ∨ R(x, y))))
+To Negation NF        : ∀x (P(x) ∧ (∃y (¬Q(y) ∨ R(x, y))))
+Std bound vars        : ∀x (P(x) ∧ (∃y (¬Q(y) ∨ R(x, y))))
+Skolemize             : ∀x (P(x) ∧ (¬Q(ƒy(x)) ∨ R(x, ƒy(x))))
+Drop ∀                : P(x) ∧ (¬Q(ƒy(x)) ∨ R(x, ƒy(x)))
+To Conjunctive NF     : P(x) ∧ (¬Q(ƒy(x)) ∨ R(x, ƒy(x)))
+Create clause set     : { P(x), ¬Q(ƒy(x)) ∨ R(x, ƒy(x)) }
+Std clause vars       : { P(x), ¬Q(ƒy(y)) ∨ R(y, ƒy(y)) }
+
+Input                 : ¬∀x (¬P(x) ∨ (∃y T(x, y)))
+Eliminate → and ↔     : ¬∀x (¬P(x) ∨ (∃y T(x, y)))
+To Negation NF        : ∃x (P(x) ∧ (∀y ¬T(x, y)))
+Std bound vars        : ∃x (P(x) ∧ (∀y ¬T(x, y)))
+Skolemize             : P(ƒx()) ∧ (∀y ¬T(ƒx(), y))
+Drop ∀                : P(ƒx()) ∧ ¬T(ƒx(), y)
+To Conjunctive NF     : P(ƒx()) ∧ ¬T(ƒx(), y)
+Create clause set     : { P(ƒx()), ¬T(ƒx(), y) }
+Std clause vars       : { P(ƒx()), ¬T(ƒx(), x) }
+
+Input                 : ∀x (F(x) → ((∃y G(x, y)) ∧ (∀z (G(x, z) → H(z)))))
+Eliminate → and ↔     : ∀x (¬F(x) ∨ ((∃y G(x, y)) ∧ (∀z (¬G(x, z) ∨ H(z)))))
+To Negation NF        : ∀x (¬F(x) ∨ ((∃y G(x, y)) ∧ (∀z (¬G(x, z) ∨ H(z)))))
+Std bound vars        : ∀x (¬F(x) ∨ ((∃y G(x, y)) ∧ (∀z (¬G(x, z) ∨ H(z)))))
+Skolemize             : ∀x (¬F(x) ∨ (G(x, ƒy(x)) ∧ (∀z (¬G(x, z) ∨ H(z)))))
+Drop ∀                : ¬F(x) ∨ (G(x, ƒy(x)) ∧ (¬G(x, z) ∨ H(z)))
+To Conjunctive NF     : (¬F(x) ∨ G(x, ƒy(x))) ∧ (¬F(x) ∨ ¬G(x, z) ∨ H(z))
+Create clause set     : { ¬F(x) ∨ G(x, ƒy(x)), ¬F(x) ∨ ¬G(x, z) ∨ H(z) }
+Std clause vars       : { ¬F(x) ∨ G(x, ƒy(x)), ¬F(y) ∨ ¬G(y, z) ∨ H(z) }
+
+Input                 : ∀x (A(x) → (∃y (B(y) ∧ (C(x, y) → (∀z D(y, z))))))
+Eliminate → and ↔     : ∀x (¬A(x) ∨ (∃y (B(y) ∧ (¬C(x, y) ∨ (∀z D(y, z))))))
+To Negation NF        : ∀x (¬A(x) ∨ (∃y (B(y) ∧ (¬C(x, y) ∨ (∀z D(y, z))))))
+Std bound vars        : ∀x (¬A(x) ∨ (∃y (B(y) ∧ (¬C(x, y) ∨ (∀z D(y, z))))))
+Skolemize             : ∀x (¬A(x) ∨ (B(ƒy(x)) ∧ (¬C(x, ƒy(x)) ∨ (∀z D(ƒy(x), z)))))
+Drop ∀                : ¬A(x) ∨ (B(ƒy(x)) ∧ (¬C(x, ƒy(x)) ∨ D(ƒy(x), z)))
+To Conjunctive NF     : (¬A(x) ∨ B(ƒy(x))) ∧ (¬A(x) ∨ ¬C(x, ƒy(x)) ∨ D(ƒy(x), z))
+Create clause set     : { ¬A(x) ∨ B(ƒy(x)), ¬A(x) ∨ ¬C(x, ƒy(x)) ∨ D(ƒy(x), z) }
+Std clause vars       : { ¬A(x) ∨ B(ƒy(x)), ¬A(y) ∨ ¬C(y, ƒy(y)) ∨ D(ƒy(y), z) }
+
+Input                 : ¬∃x ∀y (P(y) → Q(x, y) ∨ (∃z ¬R(y, z)))
+Eliminate → and ↔     : ¬∃x ∀y (¬P(y) ∨ Q(x, y) ∨ (∃z ¬R(y, z)))
+To Negation NF        : ∀x ∃y (P(y) ∧ ¬Q(x, y) ∧ (∀z R(y, z)))
+Std bound vars        : ∀x ∃y (P(y) ∧ ¬Q(x, y) ∧ (∀z R(y, z)))
+Skolemize             : ∀x (P(ƒy(x)) ∧ ¬Q(x, ƒy(x)) ∧ (∀z R(ƒy(x), z)))
+Drop ∀                : P(ƒy(x)) ∧ ¬Q(x, ƒy(x)) ∧ R(ƒy(x), z)
+To Conjunctive NF     : P(ƒy(x)) ∧ ¬Q(x, ƒy(x)) ∧ R(ƒy(x), z)
+Create clause set     : { P(ƒy(x)), ¬Q(x, ƒy(x)), R(ƒy(x), z) }
+Std clause vars       : { P(ƒy(x)), ¬Q(y, ƒy(y)), R(ƒy(z), w) }
+

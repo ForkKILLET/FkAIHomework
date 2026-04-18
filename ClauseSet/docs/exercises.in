@@ -1,0 +1,7 @@
+forall x (P(x) -> exists y Q(x, y))
+exists x forall y (R(x, y) -> !S(y))
+forall x (P(x) & exists y (Q(y) -> R(x, y)))
+!forall x (!P(x) | exists y T(x, y))
+forall x (F(x) -> (exists y G(x, y) & forall z (G(x, z) -> H(z))))
+forall x (A(x) -> exists y (B(y) & (C(x, y) -> forall z D(y, z))))
+!exists x forall y (P(y) -> (Q(x, y) | exists z !R(y, z)))

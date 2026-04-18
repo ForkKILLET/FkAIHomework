@@ -1,10 +1,4 @@
-# Doc
+# Binary
 *.pdf
 *.docx
 *.zip
-
-# Python
-__pycache__
-
-# Nix
-.direnv
