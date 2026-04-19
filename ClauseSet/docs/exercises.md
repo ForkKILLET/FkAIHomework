@@ -1,4 +1,10 @@
-## 谓词逻辑公式化为子句集练习
+---
+mainfont: SimSun
+---
+
+# 确定性推理练习
+
+## 谓词逻辑公式化为子句集
 
 1. $\forall x (P(x) \rightarrow \exists y Q(x, y))$
 
@@ -83,3 +89,59 @@
    &\iff \{ P(f(x)), \neg Q(y, f(y)), z R(f(w), z) \} \\
    \end{align*}
    $$
+
+### 程序验证
+
+<https://github.com/ForkKILLET/FkAIHomework/tree/main/ClauseSet>
+
+## 使用归结反演证明
+
+1. 前提：
+   - 所有爱猫的人都不喜欢老鼠
+   - 有人爱猫
+   - 如果某人不喜欢老鼠，他就不会养老鼠
+
+   求证：存在某人，他不养老鼠
+
+   **证明**：
+
+   设 $P(x)$ 表示“$x$ 爱猫”，$Q(x)$ 表示“$x$ 喜欢老鼠”，$R(x)$ 表示“$x$ 养老鼠”。
+
+   前提：
+
+   $$
+   \begin{align*}
+   (1)& \quad \forall x. P(x) \rightarrow \neg Q(x) \\
+   (2)& \quad \exists x. P(x) \\
+   (3)& \quad \forall x. \neg Q(x) \rightarrow \neg R(x)
+   \end{align*}
+   $$
+
+   结论的否定：
+
+   $$
+   (4) \quad \neg \exists x. \neg R(x)
+   $$
+
+   子句集：
+
+   $$
+   \begin{align*}
+   (1)& \quad \neg P(x) \lor \neg Q(x) \\
+   (2)& \quad P(f()) \\
+   (3)& \quad Q(x) \lor \neg R(x) \\
+   (4)& \quad R(x) 
+   \end{align*}
+   $$
+
+   归结：
+
+   $$
+   \begin{align*}
+   (1), (3) \implies (5)& \quad \neg P(x) \lor \neg R(x) \\
+   (4), (5) \implies (6)& \quad \neg P(x) \\
+   (2), (6) \implies (7)& \quad \bot
+   \end{align*}
+   $$
+
+   因此，结论成立。
