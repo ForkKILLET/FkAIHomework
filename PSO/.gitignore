@@ -1,0 +1,8 @@
+# Nix
+.direnv
+
+# Matlab Proto
+docs/proto
+
+# Python
+__pycache__

@@ -1,0 +1,67 @@
+{
+  description = "PSO Workspace";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  };
+
+  outputs =
+    { nixpkgs, ... }:
+    let
+      inherit (nixpkgs) lib;
+      forAllSystems = lib.genAttrs lib.systems.flakeExposed;
+    in
+    {
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              uv
+              vim
+            ];
+
+            buildInputs = with pkgs; [
+              glib
+              zlib
+              libGL
+              stdenv.cc.cc.lib
+            ];
+
+            env = {
+              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs;
+                pythonManylinuxPackages.manylinux1 ++
+                [
+                  libX11
+                  libxkbcommon
+                  fontconfig
+                  freetype
+                  zstd
+                  dbus.lib
+                  libxcb
+                  libxcb-cursor
+                  libxcb-wm
+                  libxcb-util
+                  libxcb-image
+                  libxcb-keysyms
+                  libxcb-render-util
+                ]
+              );
+
+              PROJECT = "pso";
+            };
+
+            shellHook = ''
+              unset PYTHONPATH
+              uv sync
+              . .venv/bin/activate
+            '';
+          };
+        }
+      );
+    };
+}
