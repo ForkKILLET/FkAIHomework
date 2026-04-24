@@ -10,7 +10,6 @@ from tqdm import tqdm
 from pso import PSO, SEARCHABLE_PARAMS
 from cases import PSOCase, PSOCaseDim, CASES
 from utils.numpy import FmtArray, Array
-from utils.plt import plt
 from utils.basic import float_range
 
 
@@ -52,11 +51,11 @@ def build_pso(cased: PSOCaseDim, *, override: dict[str, float] | None = None) ->
 
     xb = case.bound
     params = dict(
-        v_max=xb * 0.27,
-        omega=1.00,
-        omega_min=0.13,
-        phi1=2.02,
-        phi2=0.90,
+        v_max=xb * 0.233,
+        omega=0.920,
+        omega_min=0.164,
+        phi1=2.307,
+        phi2=0.771,
     )
 
     if override:
@@ -147,6 +146,8 @@ def report(cased: PSOCaseDim, args: PSORunArgs, res: PSORunMultiResult):
     if not args.plot:
         return
 
+    from utils.plt import plt
+
     if D == 1:
         xb = case.bound
         dom = np.linspace(-xb, xb, 200)
@@ -230,7 +231,7 @@ def report(cased: PSOCaseDim, args: PSORunArgs, res: PSORunMultiResult):
         )
         ax1.scatter(
             optimal.x[0],
-            optimal.x[0],
+            optimal.x[1],
             optimal.y,
             color="black",
             s=80,
@@ -306,6 +307,8 @@ def search(cased: PSOCaseDim, args: PSOSearchArgs):
     optimal = cased.get_optimal()
 
     if args.plot:
+        from utils.plt import plt
+
         plt.ion()
         fig, ax = plt.subplots()
         line, = ax.plot([], [], marker="o")

@@ -75,7 +75,7 @@ if __name__ == "__main__":
                 eps: float = args.eps
                 is_passed = get_is_passed(eps)
 
-                xs = (extract_point(ga.start()) for _ in tqdm(range(runs), desc=f"  Runs", leave=False, unit="run"))
+                xs = (extract_point(ga.start()) for _ in tqdm(range(runs), desc="  Runs", leave=False, unit="run"))
                 not_passed_xs, passed_xs = (list(xs) for xs in partition(is_passed, xs))
                 passed_runs = len(passed_xs)
                 print(f"Pass: {passed_runs}/{runs} = {passed_runs / runs:.2%}")

@@ -8,7 +8,8 @@ class float_range:
         return int((self.stop - self.start) / self.step) + 1
 
     def __iter__(self):
+        eps = abs(self.step) * 1e-9
         x = self.start
-        while x < self.stop:
+        while x <= self.stop + eps:
             yield x
             x += self.step

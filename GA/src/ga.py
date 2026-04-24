@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from collections.abc import Callable, Iterable
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from math import inf
 
 import numpy as np
@@ -13,7 +13,7 @@ type FitnessFnV = Callable[[Population], Values]
 type ChromoWithFitness = tuple[Chromo, float]
 
 @dataclass
-class GA:
+class GA(ABC):
     pop_size: int
     generations: int
     mutation_rate: float

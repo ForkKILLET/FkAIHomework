@@ -1,5 +1,5 @@
 {
-  description = "Develop Python on Nix with uv";
+  description = "GA Workspace";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
